@@ -1,7 +1,4 @@
-<use   name="rootrflx"/>
-<use   name="CommonTools/Utils"/>
-<Flags LDFLAGS="-lPhysics -lRIO -lNet -lHist -lTree -lMatrix -lProof -lThread -lCore -lCint -lMathCore"/>
-<export>
-  <lib   name="1"/>
-</export>
-
+<use name="root"/>
+<bin name="haddR" file="haddR.cpp"/>
+<bin name="lheReader" file="lheReader.cpp"/>
+<bin name="aodsimReader" file="aodsimReader.cpp"/>

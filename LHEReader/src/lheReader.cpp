@@ -19,6 +19,10 @@
 
 #include "../interface/lheReader.h"
 
+#include <functional>
+#include <cstring>
+#include <cstdlib>
+
 //
 // constructors and destructor
 //
@@ -41,6 +45,30 @@ lheReader::~lheReader()
 // member functions
 //
 
+bool lheReader::initialize(char **argv) {
+
+  int argc = 0;
+  while(argv[++argc] != NULL);
+
+  if (argc == 2 || argc > 7) {    
+    return false;
+  }
+  
+  std::vector<std::function<void(const char*)>> commandlineArgs;
+
+  commandlineArgs.push_back(std::bind(&lheReader::lhefile,this,std::placeholders::_1));
+  commandlineArgs.push_back(std::bind(&lheReader::ntuplizer,this,std::placeholders::_1));
+  commandlineArgs.push_back(std::bind(&lheReader::setRun,this,std::placeholders::_1));
+  commandlineArgs.push_back(std::bind(&lheReader::setEvent,this,std::placeholders::_1));
+  commandlineArgs.push_back(std::bind(&lheReader::setLumi,this,std::placeholders::_1));
+  commandlineArgs.push_back(std::bind(&lheReader::setDebug,this,std::placeholders::_1));
+
+  for (int i = 1; i < argc; ++i) {
+    commandlineArgs[i-1](argv[i]);
+  }   
+  return true;
+}
+
 bool lheReader::getDebug()
 {
   return m_debug;
@@ -52,14 +80,22 @@ void lheReader::setDebug(const char *db)
   ss >> std::boolalpha >> m_debug;
 }
 
-void lheReader::lhefile(TString lhefilename)
+void lheReader::lhefile(const char *lf)
 {
+  std::string lhefilename;
+  std::stringstream ss(lf);
+  ss >> lhefilename;
   fileinput.open(lhefilename);
 }
 
-void lheReader::ntuplizer(TString output)
-{
+void lheReader::ntuplizer(const char *op)
+{  
+  std::string output;
+  std::stringstream ss(op);
+  ss >> output;
+
   std::string lheline;
+
   std::string beginevent = "<event>";
   std::string endevent = "</event>";
 
@@ -68,7 +104,7 @@ void lheReader::ntuplizer(TString output)
 
   bool eventswitch = false;
 
-  TFile *fileoutput = new TFile(output,"RECREATE","Demo root file with trees");
+  TFile *fileoutput = new TFile(output.c_str(),"RECREATE","Demo root file with trees");
 
   TTree *LHETree = new TTree("LHETree","Events in LHE File");
 
@@ -288,42 +324,13 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  else if (argc == 2 || argc > 7) {
+  bool check = handler->initialize(argv);
+  delete handler;
+
+  if (!check) {
     std::cout << "You have specified too few or too many arguments!" << std::endl;
     return 1;
   }
-
-  for (int i = 1; i < argc; ++i) {
- 
-    switch(i) {
-
-      case 1:
-        handler->lhefile(argv[i]);
-        break;
-   
-      case 2:
-        handler->ntuplizer(argv[i]);
-        break;
-   
-      case 3:
-        handler->setRun(argv[i]);
-        break;
-
-      case 4:
-        handler->setEvent(argv[i]);
-        break;
-   
-      case 5:
-        handler->setLumi(argv[i]);     
-        break;
-
-      case 6:
-        handler->setDebug(argv[i]);
-        break; 
-      }
-  }
-
-  delete handler;
 
   return 0;
 }

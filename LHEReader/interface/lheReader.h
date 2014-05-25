@@ -72,8 +72,8 @@ class lheReader {
     bool getDebug(void);
     void setDebug(const char *);
 
-    void lhefile(TString);
-    void ntuplizer(TString);
+    void lhefile(const char *);
+    void ntuplizer(const char *);
 
     Int_t getRun(void);
     void setRun(const char *);
@@ -83,6 +83,8 @@ class lheReader {
 
     Int_t getLumi(void);
     void setLumi(const char *);
+
+    bool initialize(char **);
 
   private:
     Int_t    run_number;
